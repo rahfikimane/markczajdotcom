@@ -1,279 +1,566 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mark Czajkowski - Technology Consultant</title>
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-	<script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="9dca72f0-5a48-4ef2-a262-9df7d493f4da" async>
-</script>-->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+
+    <!-- Analytics (unchanged) -->
+    <script src="https://beamanalytics.b-cdn.net/beam.min.js"
+            data-token="9dca72f0-5a48-4ef2-a262-9df7d493f4da"
+            async></script>
+
+    <!-- Retro pixel font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+        rel="stylesheet"
+    />
+
     <style>
         :root {
-            --primary: #3b82f6;
-            --text: #e5e7eb;
-            --bg: #111827;
+            --primary: #33ff99;
+            --text: #d4ffd9;
+            --bg: #02040f;
+            --panel: #040a18;
+            --border: #33ff99;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
             margin: 0;
             padding: 0;
+            background: radial-gradient(circle at top, #050816 0, #02040f 40%, #000000 100%);
+            color: var(--text);
+            font-family: "Press Start 2P", system-ui, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, sans-serif;
+            font-size: 10px;
             line-height: 1.6;
+            overflow: hidden; /* while loading */
         }
 
+        /* CRT effect */
+        body::before {
+            content: "";
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.35) 0px,
+                    rgba(0, 0, 0, 0.35) 1px,
+                    rgba(0, 0, 0, 0.1) 2px
+                );
+            mix-blend-mode: soft-light;
+            opacity: 0.7;
+            z-index: 999;
+        }
+
+        body.crt-flicker {
+            animation: crt-flicker 0.2s infinite alternate;
+        }
+
+        @keyframes crt-flicker {
+            0% { filter: brightness(0.95); }
+            100% { filter: brightness(1.05); }
+        }
+
+        /* LOADING SCREEN */
+        .boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            z-index: 1000;
+        }
+
+        .boot-inner {
+            border: 2px solid var(--primary);
+            padding: 1.5rem;
+            max-width: 600px;
+            width: 90%;
+            background: #02040f;
+            box-shadow: 0 0 20px rgba(51, 255, 153, 0.5);
+        }
+
+        .boot-line {
+            margin: 0.4rem 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .boot-header {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(51, 255, 153, 0.6);
+            padding-bottom: 0.5rem;
+        }
+
+        .boot-progress {
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            border: 1px solid var(--primary);
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            inset: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #0aff9d, #b2ffb4);
+            transition: width 0.2s linear;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 0.7ch;
+            background: var(--primary);
+            margin-left: 3px;
+            animation: blink 0.8s steps(1) infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            50.01%, 100% { opacity: 0; }
+        }
+
+        /* MAIN CONTENT (8-bit desktop) */
+        .desktop {
+            position: relative;
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.98);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .desktop.loaded {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .monitor-frame {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--panel);
+            border: 4px solid var(--border);
+            box-shadow:
+                0 0 0 4px #000,
+                0 0 24px rgba(0, 0, 0, 0.9),
+                0 0 40px rgba(0, 0, 0, 1);
+            padding: 0;
+            position: relative;
+        }
+
+        .monitor-header {
+            background: #02100b;
+            border-bottom: 2px solid var(--border);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+        }
+
+        .monitor-title {
+            text-transform: uppercase;
+        }
+
+        .monitor-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .control-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+        }
+
+        .control-dot:nth-child(1) { background: #22c55e; }
+        .control-dot:nth-child(2) { background: #facc15; }
+        .control-dot:nth-child(3) { background: #ef4444; }
+
         .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem;
+            max-height: calc(100vh - 5rem);
+            overflow-y: auto;
+        }
+
+        /* Scrollbar retro */
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: #000;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--primary);
         }
 
         /* Profile Section */
         .profile {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .profile-img {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 1.5rem;
+            width: 120px;
+            height: 120px;
+            border-radius: 0;
+            border: 3px solid var(--border);
+            margin-bottom: 1rem;
             object-fit: cover;
-			filter: grayscale(100%);
+            filter: grayscale(100%);
+            image-rendering: pixelated;
             object-position: center 30%;
         }
 
-        /* Sections */
-        .section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        h1 {
+            font-size: 14px;
+            margin: 0.4rem 0;
+            text-shadow: 0 0 8px rgba(51, 255, 153, 0.8);
         }
 
-        .experience-item {
-            border-left: 2px solid var(--primary);
-            padding-left: 1.5rem;
-            margin-bottom: 2rem;
+        h2 {
+            font-size: 11px;
+            margin: 1.5rem 0 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed rgba(51, 255, 153, 0.5);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 10px;
+            margin: 0.6rem 0 0.4rem;
+        }
+
+        .subtitle {
+            color: var(--primary);
+            font-size: 9px;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 9px;
+        }
+
+        .section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(51, 255, 153, 0.4);
+            position: relative;
+        }
+
+        .section::before {
+            content: ">_";
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 8px;
+            color: rgba(51, 255, 153, 0.5);
         }
 
         /* Skills Grid */
         .skills-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.6rem;
         }
 
         .skill-item {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background: #000;
+            padding: 0.5rem;
+            border-radius: 3px;
             text-align: center;
             color: var(--primary);
+            border: 1px solid rgba(51, 255, 153, 0.5);
+            text-transform: uppercase;
+            font-size: 8px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition:
+                transform 0.12s ease,
+                box-shadow 0.12s ease,
+                background 0.12s ease;
         }
 
-        /* Typography */
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 300;
-            color: white;
-            margin: 0.5rem 0;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 300;
-            color: white;
-            margin-bottom: 1.5rem;
-        }
-
-        h3 {
-            font-size: 1.25rem;
-            color: white;
-            margin: 0.5rem 0;
-        }
-
-        .subtitle {
-            color: var(--primary);
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
+        .skill-item:hover {
+            transform: translateY(-1px) scale(1.03);
+            background: #022214;
+            box-shadow: 0 0 12px rgba(51, 255, 153, 0.7);
         }
 
         /* Links */
         a {
             color: var(--primary);
             text-decoration: none;
-            transition: color 0.2s;
         }
 
         a:hover {
-            color: #60a5fa;
+            text-shadow: 0 0 6px rgba(51, 255, 153, 0.9);
+        }
+
+        .connect-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.7rem 1.3rem;
+            border-radius: 4px;
+            border: 1px solid rgba(51, 255, 153, 0.7);
+            background: #000;
+            font-size: 9px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                background 0.15s ease;
+        }
+
+        .connect-button:hover {
+            transform: translateY(-1px);
+            background: #022214;
+            box-shadow: 0 0 14px rgba(51, 255, 153, 0.9);
+        }
+
+        .connect-button svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* “Status line” footer */
+        .status-bar {
+            border-top: 2px solid var(--border);
+            padding: 0.5rem 1rem;
+            font-size: 8px;
+            display: flex;
+            justify-content: space-between;
+            background: #010306;
+        }
+
+        .status-bar span {
+            opacity: 0.8;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .skills-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .desktop {
+                padding: 0.8rem;
+            }
+            .monitor-frame {
+                border-width: 3px;
+            }
+            .main-content {
+                max-height: calc(100vh - 5.5rem);
             }
         }
 
         @media (max-width: 480px) {
-            .skills-grid {
-                grid-template-columns: 1fr;
+            body {
+                font-size: 8px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="main-content">
-        <!-- Profile -->
-        <div class="profile">
-            <!--<img src="images/profile.jpeg" alt="Mark Czajkowski" class="profile-img">-->
-            <h1>Mark Czajkowski</h1>
-            <div class="subtitle">
-                Full-time technology consultant, IT solution volunteer, mastering my niche
+<body class="crt-flicker">
+    <!-- BOOT / LOADING SCREEN -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="boot-inner">
+            <div class="boot-header">
+                <div>MARKC.OS v1.0</div>
+                <div>© 2025 MARK CZAJKOWSKI</div>
             </div>
-        </div>
 
-        <!-- Professional Profile -->
-        <div class="section">
-            <h2>Professional Profile</h2>
-            <p>
-                Client-focused IT consultant and solutions architect with 15 years of experience building innovative, efficient solutions for government and defense agencies. Specializing in Microsoft O365 / SharePoint architecture, administration, and development for complex enterprise systems. Recognized for delivering secure, compliant, and client-focused solutions that enhance operational efficiency and align technology with mission objectives. Dedicated to exceptional client service, collaboration, and leveraging technology to solve complex business challenges, while actively volunteering to help non-profits and small businesses strengthen their online presence.
-            </p>
-        </div>
+            <div class="boot-line" id="bootLine1">> INITIALIZING SYSTEM...</div>
+            <div class="boot-line" id="bootLine2">> LOADING MODULES...</div>
+            <div class="boot-line" id="bootLine3">> STARTING INTERFACE...</div>
 
-        <!-- Experience -->
-       <!-- <div class="section">
-    <h2>Experience</h2>
-    
-    <div class="experience-item">
-        <h3>Senior Software Developer, DoD & Commercial Sectors | Strategy & Solutions Lead</h3>
-        <div class="subtitle">Defense Project with SPP Tech, LLC • 2017-Present</div>
-        <p>
-            Leading Microsoft O365 / SharePoint development and system integration for Defense operations. 
-            Developing custom tools and automation solutions using SharePoint Framework (SPFx) and JavaScript/TypeScript. 
-            Managing multiple audit tools while ensuring compliance with DoD cybersecurity and operational standards. 
-            Architecting scalable solutions for complex audit workflows.
-        </p>
-    </div>
-
-    <div class="experience-item">
-        <h3>Owner</h3>
-        <div class="subtitle">
-            <a href="http://markc.io" target="_blank" rel="noopener noreferrer">
-                MARKC.IO Technology Solutions
-            </a> • Present
-        </div>
-        <p>
-            Founded and operating a technology consultancy focused on empowering small and medium-sized 
-            businesses with strategic tech solutions. Providing comprehensive services including web 
-            application implementation, system integration, and ongoing technical support. Specializing 
-            in helping businesses leverage modern technology for improved efficiency, sales growth, and 
-            customer engagement through carefully selected, cost-effective solutions.
-        </p>
-    </div>
-
-    <div class="experience-item">
-        <h3>Senior Consultant</h3>
-        <div class="subtitle">Booz Allen Hamilton & SPP Tech, LLC • 2013-2017</div>
-        <p>
-            Led financial system audits and developed enterprise-wide audit tools to streamline compliance 
-            across multiple defense agencies. Spearheaded integrated solutions that enhanced transparency 
-            and accountability in defense financial systems. Collaborated with cross-functional teams to 
-            implement scalable, secure, and compliant technologies.
-        </p>
-    </div>
-
-    <div class="experience-item">
-        <h3>Microsoft Support Engineer</h3>
-        <div class="subtitle">Utopia Systems, Inc. • 2010-2013</div>
-        <p>
-            Provided expert-level support and backend administration for Microsoft 365 core systems 
-            through a certified service provider. Implemented and maintained robust solutions for 
-            enterprise clients, ensuring optimal system performance and security. Specialized in 
-            SharePoint, Exchange, and Azure AD infrastructure management while delivering top-tier 
-            technical support and system optimization.
-        </p>
-    </div>
-</div>-->
-
-
-        <!-- Skills -->
-        <div class="section">
-            <h2>Skills</h2>
-            <div class="skills-grid">
-                <div class="skill-item">SharePoint Online</div>
-                <div class="skill-item">JavaScript/TypeScript</div>
-                <div class="skill-item">SPFx Development</div>
-                <div class="skill-item">Full Stack Development</div>
-                <div class="skill-item">Cloud Solutions</div>
-                <div class="skill-item">System Architecture</div>
-                <div class="skill-item">REST APIs</div>
-                <div class="skill-item">React/Next.js</div>
-                <div class="skill-item">Python</div>
-                <div class="skill-item">Microsoft PowerBI</div>
-                <div class="skill-item">Windows/macOS/Ubuntu</div>
-                <div class="skill-item">jQuery</div>
-                <div class="skill-item">Atlassian Suite</div>
-                <div class="skill-item">AWS</div>
-                <div class="skill-item">DigitalOcean</div>
-                <div class="skill-item">WordPress</div>
-                <div class="skill-item">Office 365</div>
-                <div class="skill-item">Google Apps</div>
-                <div class="skill-item">Project Management</div>
-                <div class="skill-item">Business Analysis</div>
-                <div class="skill-item">Process Automation</div>
-                <div class="skill-item">Team Leadership</div>
-                <div class="skill-item">Solution Architecture</div>
-                <div class="skill-item">Technical Documentation</div>
-				<div class="skill-item">AI Technology Consulting</div>
-            </div>
-        </div>
-
-        <!-- Education -
-        <div class="section">
-            <h2>Education</h2>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <svg class="w-6 h-6" style="width: 24px; height: 24px; color: var(--primary);" 
-                     fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L1 8l11 6 9-4.91V17h2V7.5L12 2zm0 15c-3.87 0-7-1.34-7-3v3c0 1.66 3.13 3 7 3s7-1.34 7-3v-3c0 1.66-3.13 3-7 3z"/>
-                </svg>
-                <div>
-                    <h3>Bachelor of Science, Management Information Systems</h3>
-                    <div class="subtitle">University of Delaware</div>
+            <div class="boot-progress">
+                <span id="bootPercent">0%</span> COMPLETE
+                <div class="progress-bar">
+                    <div class="progress-fill" id="bootFill"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Connect -->
-        <div class="section" style="text-align: center;">
-            <h2>Connect</h2>
-            <a href="https://www.linkedin.com/in/markczaj" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="display: inline-flex; align-items: center; gap: 0.5rem; 
-                      background: rgba(0, 0, 0, 0.3); padding: 0.75rem 1.5rem; 
-                      border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.2);">
-                <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                Connect on LinkedIn
-            </a>
+            <div class="boot-line" style="margin-top: 1rem;">
+                PRESS ANY KEY TO SKIP <span class="cursor"></span>
+            </div>
         </div>
     </div>
+
+    <!-- MAIN “DESKTOP” -->
+    <div class="desktop" id="desktop">
+        <div class="monitor-frame">
+            <div class="monitor-header">
+                <div class="monitor-title">/home/mark/portfolio/consultant.exe</div>
+                <div class="monitor-controls">
+                    <div class="control-dot"></div>
+                    <div class="control-dot"></div>
+                    <div class="control-dot"></div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Profile -->
+                <div class="profile">
+                    <!-- <img src="images/profile.jpeg" alt="Mark Czajkowski" class="profile-img"> -->
+                    <h1>MARK CZAJKOWSKI</h1>
+                    <div class="subtitle">
+                        FULL-TIME TECHNOLOGY CONSULTANT, IT SOLUTION VOLUNTEER, MASTERING MY NICHE
+                    </div>
+                </div>
+
+                <!-- Professional Profile -->
+                <div class="section">
+                    <h2>Professional Profile</h2>
+                    <p>
+                        Client-focused IT consultant and solutions architect with 15 years of experience building innovative, efficient solutions for government and defense agencies. Specializing in Microsoft O365 / SharePoint architecture, administration, and development for complex enterprise systems. Recognized for delivering secure, compliant, and client-focused solutions that enhance operational efficiency and align technology with mission objectives. Dedicated to exceptional client service, collaboration, and leveraging technology to solve complex business challenges, while actively volunteering to help non-profits and small businesses strengthen their online presence.
+                    </p>
+                </div>
+
+                <!-- Skills -->
+                <div class="section">
+                    <h2>Skills</h2>
+                    <div class="skills-grid">
+                        <div class="skill-item">SharePoint Online</div>
+                        <div class="skill-item">JavaScript/TypeScript</div>
+                        <div class="skill-item">SPFx Development</div>
+                        <div class="skill-item">Full Stack Development</div>
+                        <div class="skill-item">Cloud Solutions</div>
+                        <div class="skill-item">System Architecture</div>
+                        <div class="skill-item">REST APIs</div>
+                        <div class="skill-item">React/Next.js</div>
+                        <div class="skill-item">Python</div>
+                        <div class="skill-item">Microsoft PowerBI</div>
+                        <div class="skill-item">Windows/macOS/Ubuntu</div>
+                        <div class="skill-item">jQuery</div>
+                        <div class="skill-item">Atlassian Suite</div>
+                        <div class="skill-item">AWS</div>
+                        <div class="skill-item">DigitalOcean</div>
+                        <div class="skill-item">WordPress</div>
+                        <div class="skill-item">Office 365</div>
+                        <div class="skill-item">Google Apps</div>
+                        <div class="skill-item">Project Management</div>
+                        <div class="skill-item">Business Analysis</div>
+                        <div class="skill-item">Process Automation</div>
+                        <div class="skill-item">Team Leadership</div>
+                        <div class="skill-item">Solution Architecture</div>
+                        <div class="skill-item">Technical Documentation</div>
+                        <div class="skill-item">AI Technology Consulting</div>
+                    </div>
+                </div>
+
+                <!-- Connect -->
+                <div class="section" style="text-align: center;">
+                    <h2>Connect</h2>
+                    <a href="https://www.linkedin.com/in/markczaj"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="connect-button">
+                        <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                        CONNECT ON LINKEDIN
+                    </a>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span id="statusLeft">MARKC.OS READY</span>
+                <span id="statusRight">PRESS ANY KEY FOR SKILL HIGHLIGHT</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const bootScreen = document.getElementById("bootScreen");
+            const desktop = document.getElementById("desktop");
+            const bootFill = document.getElementById("bootFill");
+            const bootPercent = document.getElementById("bootPercent");
+            const statusLeft = document.getElementById("statusLeft");
+            const statusRight = document.getElementById("statusRight");
+
+            let progress = 0;
+            let bootDone = false;
+
+            function updateProgress() {
+                if (bootDone) return;
+                progress += Math.floor(Math.random() * 12) + 5; // +5 to +16
+                if (progress >= 100) {
+                    progress = 100;
+                    completeBoot();
+                }
+                bootFill.style.width = progress + "%";
+                bootPercent.textContent = progress + "%";
+            }
+
+            function completeBoot() {
+                if (bootDone) return;
+                bootDone = true;
+
+                setTimeout(() => {
+                    bootScreen.style.transition = "opacity 0.4s ease";
+                    bootScreen.style.opacity = "0";
+                    setTimeout(() => {
+                        bootScreen.style.display = "none";
+                        document.body.style.overflow = "auto";
+                        desktop.classList.add("loaded");
+                    }, 400);
+                }, 250);
+            }
+
+            const bootInterval = setInterval(updateProgress, 260);
+
+            function skipBoot() {
+                if (bootDone) return;
+                clearInterval(bootInterval);
+                progress = 100;
+                bootFill.style.width = "100%";
+                bootPercent.textContent = "100%";
+                completeBoot();
+            }
+
+            document.addEventListener("keydown", skipBoot);
+            document.addEventListener("click", skipBoot);
+
+            // Small interactive touch: press any key to randomly highlight a skill
+            const skills = Array.from(document.querySelectorAll(".skill-item"));
+            document.addEventListener("keydown", (e) => {
+                if (!skills.length) return;
+                const random = skills[Math.floor(Math.random() * skills.length)];
+                skills.forEach((s) => (s.style.outline = "none"));
+                random.style.outline = "1px dashed var(--primary)";
+                random.scrollIntoView({ behavior: "smooth", block: "center" });
+                statusLeft.textContent = "HIGHLIGHTED SKILL: " + random.textContent.toUpperCase();
+                statusRight.textContent = "KEY PRESSED: " + e.key.toUpperCase();
+            });
+        })();
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
