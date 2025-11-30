@@ -15,8 +15,8 @@
 
     <style>
         :root {
-            --primary: #60a5fa;      /* main blue */
-            --primary-soft: #93c5fd; /* softer blue */
+            --primary: #60a5fa;
+            --primary-soft: #93c5fd;
             --primary-deep: #1d4ed8;
             --text: #e5f0ff;
             --muted: #94a3b8;
@@ -43,7 +43,6 @@
             overflow: hidden; /* while loading */
         }
 
-        /* Very subtle scanline/screen texture */
         body::before {
             content: "";
             pointer-events: none;
@@ -197,7 +196,7 @@
             45.01%, 100% { opacity: 0; }
         }
 
-        /* MAIN CONTENT (Palantir-esque "console") */
+        /* MAIN CONTENT */
         .desktop {
             position: relative;
             min-height: 100vh;
@@ -269,7 +268,6 @@
             overflow-y: auto;
         }
 
-        /* Scrollbar */
         .main-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -293,8 +291,8 @@
         .profile-inner {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            padding: 1.3rem 1.25rem;
+            gap: 1.1rem;
+            padding: 1.1rem 1.25rem;
             border-radius: 12px;
             border: 1px solid rgba(148, 163, 184, 0.5);
             background:
@@ -304,14 +302,15 @@
             width: 100%;
         }
 
-        .profile-img {
-            width: 72px;
-            height: 72px;
+        .profile-avatar {
+            width: 56px;
+            height: 56px;
             border-radius: 999px;
             border: 2px solid rgba(148, 163, 184, 0.9);
             object-fit: cover;
+            object-position: center;
             filter: grayscale(100%);
-            object-position: center 30%;
+            flex-shrink: 0;
         }
 
         .profile-text {
@@ -523,14 +522,9 @@
             font-size: 11px;
         }
 
-        /* Responsive */
         @media (max-width: 900px) {
             .profile-inner {
-                flex-direction: column;
-                text-align: center;
-            }
-            .profile-text {
-                text-align: center;
+                flex-direction: row;
             }
         }
 
@@ -551,6 +545,9 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
+            }
+            .profile-inner {
+                flex-direction: row;
             }
             h1 {
                 font-size: 18px;
@@ -606,7 +603,7 @@
         <div class="monitor-frame">
             <div class="monitor-header">
                 <div class="monitor-left">
-                    <div class="monitor-title">/workspace/markczaj/consulting</div>
+                    <div class="monitor-title">/workspace/mark/consulting</div>
                     <div class="monitor-subtitle">Technology Consulting • Solutions Architect</div>
                 </div>
             </div>
@@ -615,7 +612,7 @@
                 <!-- Profile -->
                 <div class="profile">
                     <div class="profile-inner">
-                        <!-- <img src="images/profile.jpeg" alt="Mark Czajkowski" class="profile-img"> -->
+                        <img src="images/profile.jpg" alt="Mark Czajkowski" class="profile-avatar" />
                         <div class="profile-text">
                             <h1>MARK CZAJKOWSKI</h1>
                             <div class="title-chip">
@@ -624,7 +621,7 @@
                             </div>
                             <div class="subtitle">
                                 Full-time technology consultant and IT solution volunteer, building
-                                focused, high-impact systems. Mastering my niche.
+                                focused, high-impact systems in my niche.
                             </div>
                         </div>
                     </div>
@@ -639,7 +636,7 @@
                     <p>
                         Client-focused IT consultant and solutions architect with 15 years of experience
                         building innovative, efficient solutions for government and defense agencies.
-                        Specializing in Microsoft O365 / SharePoint / ServiceNow architecture, administration, and
+                        Specializing in Microsoft O365 / SharePoint architecture, administration, and
                         development for complex enterprise systems. Recognized for delivering secure,
                         compliant, and client-focused solutions that enhance operational efficiency and
                         align technology with mission objectives. Dedicated to exceptional client
@@ -771,4 +768,3 @@
     </script>
 </body>
 </html>
-
