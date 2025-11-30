@@ -287,21 +287,21 @@
 
         /* Profile Section */
         .profile {
-            text-align: center;
             margin-bottom: 2rem;
         }
 
         .profile-inner {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 1.5rem;
-            padding: 1rem 1.5rem;
-            border-radius: 999px;
+            padding: 1.3rem 1.25rem;
+            border-radius: 12px;
             border: 1px solid rgba(148, 163, 184, 0.5);
             background:
                 radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 55%),
                 rgba(15, 23, 42, 0.9);
             box-shadow: 0 14px 30px rgba(15, 23, 42, 0.8);
+            width: 100%;
         }
 
         .profile-img {
@@ -526,7 +526,6 @@
         /* Responsive */
         @media (max-width: 900px) {
             .profile-inner {
-                border-radius: 14px;
                 flex-direction: column;
                 text-align: center;
             }
@@ -608,9 +607,8 @@
             <div class="monitor-header">
                 <div class="monitor-left">
                     <div class="monitor-title">/workspace/mark/consulting</div>
-                    <div class="monitor-subtitle">Technology Consulting • Systems Architecture</div>
+                    <div class="monitor-subtitle">Technology Consulting • Solutions Architect</div>
                 </div>
-                <!-- Right side now intentionally empty / clean -->
             </div>
 
             <div class="main-content">
@@ -671,6 +669,7 @@
                         <div class="skill-item"><span class="skill-dot"></span>Windows / macOS / Ubuntu</div>
                         <div class="skill-item"><span class="skill-dot"></span>jQuery</div>
                         <div class="skill-item"><span class="skill-dot"></span>Atlassian Suite</div>
+                        <div class="skill-item"><span class="skill-dot"></span>ServiceNow</div>
                         <div class="skill-item"><span class="skill-dot"></span>AWS</div>
                         <div class="skill-item"><span class="skill-dot"></span>DigitalOcean</div>
                         <div class="skill-item"><span class="skill-dot"></span>WordPress</div>
