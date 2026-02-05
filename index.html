@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Czajkowski | DC High-Res</title>
+    <title>Mark Czajkowski | DC Space View</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -26,13 +26,12 @@
         }
         h1 {
             font-size: clamp(2rem, 8vw, 4.5rem); font-weight: 200;
-            letter-spacing: 0.3em; text-transform: uppercase;
-            text-shadow: 0 0 40px #000;
+            letter-spacing: 0.4em; text-transform: uppercase;
+            text-shadow: 0 0 40px rgba(0,0,0,1);
         }
         .status {
-            margin-top: 20px; font-size: 0.65rem; letter-spacing: 0.4em;
-            opacity: 0.5; background: rgba(0,0,0,0.6);
-            padding: 8px 25px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 20px; font-size: 0.6rem; letter-spacing: 0.5em;
+            opacity: 0.4; font-weight: 300; text-transform: uppercase;
         }
     </style>
 </head>
@@ -43,53 +42,58 @@
 
     <div class="content">
         <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">ENHANCING DC METRO VIEW...</div>
+        <div id="status" class="status">Awaiting Satellite Link...</div>
     </div>
 
     <script>
-        async function updateSatellite() {
+        async function fetchVIIRS() {
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            // MODIS satellites (Terra/Aqua) update daily. 
-            // We'll check today, then yesterday if today's pass hasn't happened yet.
-            let date = new Date();
+            // DC Metro Bounding Box (Slightly wider for context)
+            const bbox = "38.4,-77.8,39.6,-76.4";
             
-            const getUrl = (d) => {
-                const dateStr = d.toISOString().split('T')[0];
-                // DC Metro Bounding Box
-                const bbox = "38.5,-77.8,39.5,-76.5";
+            const getUrl = (dateObj) => {
+                const dateStr = dateObj.toISOString().split('T')[0];
                 return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
                        `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
-                       `LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor,Coastlines_15m&` +
+                       `LAYERS=VIIRS_SNPP_CorrectedReflectance_TrueColor,Coastlines_15m&` +
                        `WIDTH=2560&HEIGHT=1440&CRS=EPSG:4326&BBOX=${bbox}&` +
                        `FORMAT=image/jpeg&TIME=${dateStr}`;
             };
 
-            const tryLoad = (d, attempts) => {
-                if (attempts <= 0) {
-                    status.innerText = "SATELLITE DATA UNAVAILABLE";
-                    return;
-                }
-                const url = getUrl(d);
-                const img = new Image();
-                img.src = url;
-                img.onload = () => {
-                    bg.style.backgroundImage = `url('${url}')`;
-                    bg.style.opacity = '1';
-                    status.innerText = `HIGH-RES DC METRO • TERRA SATELLITE • ${d.toISOString().split('T')[0]}`;
-                };
-                img.onerror = () => {
-                    // Try the previous day
-                    d.setDate(d.getDate() - 1);
-                    tryLoad(d, attempts - 1);
-                };
+            const validateImage = (url) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = url;
+                });
             };
 
-            tryLoad(date, 3);
+            // Strategy: Try today, then yesterday, then 2 days ago
+            let testDate = new Date();
+            let success = false;
+
+            for (let i = 0; i < 3; i++) {
+                const url = getUrl(testDate);
+                const isValid = await validateImage(url);
+                if (isValid) {
+                    bg.style.backgroundImage = `url('${url}')`;
+                    bg.style.opacity = '1';
+                    status.innerText = `NASA VIIRS HIGH-RES • ${testDate.toISOString().split('T')[0]}`;
+                    success = true;
+                    break;
+                }
+                testDate.setDate(testDate.getDate() - 1);
+            }
+
+            if (!success) status.innerText = "SATELLITE DATA TEMPORARILY OFFLINE";
         }
 
-        updateSatellite();
+        fetchVIIRS();
+        // High-res orbits are daily, so we only need to refresh every hour
+        setInterval(fetchVIIRS, 3600000);
     </script>
 </body>
 </html>
