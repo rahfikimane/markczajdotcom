@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mark Czajkowski | DC Live</title>
+    <title>Mark Czajkowski | GOES-19 Live</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -12,11 +12,11 @@
         #bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            transition: opacity 1.5s ease; opacity: 0; z-index: 1;
+            transition: opacity 2s ease; opacity: 0; z-index: 1;
         }
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 10%, rgba(0,0,0,0.85) 100%);
+            background: radial-gradient(circle, transparent 0%, rgba(0,0,0,0.8) 100%);
             z-index: 2;
         }
         .content {
@@ -26,12 +26,12 @@
         h1 {
             font-size: clamp(2rem, 8vw, 4.5rem); font-weight: 200;
             letter-spacing: 0.3em; text-transform: uppercase;
-            text-shadow: 0 0 40px #000;
+            text-shadow: 0 0 40px rgba(0,0,0,1);
         }
         .status {
-            margin-top: 20px; font-size: 0.65rem; letter-spacing: 0.4em;
-            opacity: 0.5; padding: 8px 20px; border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4);
+            margin-top: 20px; font-size: 0.6rem; letter-spacing: 0.5em;
+            opacity: 0.5; font-weight: 300; padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
         }
     </style>
 </head>
@@ -42,26 +42,30 @@
 
     <div class="content">
         <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">UPLINKING TO GOES-EAST...</div>
+        <div id="status" class="status">LINKING TO GOES-19...</div>
     </div>
 
     <script>
-        // The most reliable "True Color" layer that handles Day/Night transitions
-        const LAYER = "GOES-East_ABI_GeoColor";
-        // DC Metro Bounds (Strict Lat/Lon for NASA WMS 1.3.0)
-        const BBOX = "38.5,-77.5,39.3,-76.6"; 
-
-        async function initSatellite() {
+        async function updateGoes19() {
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            let now = new Date();
-            // Start 30 minutes ago (NASA takes time to process)
-            now.setMinutes(now.getMinutes() - 30);
+            // Full Disk Bounding Box (Global view centered on GOES-East longitude)
+            const bbox = "-90,-180,90,180"; 
 
-            // We will try the last 6 10-minute intervals to find a live image
-            for (let i = 0; i < 6; i++) {
-                // Round to the nearest 10 minutes (NASA GIBS standard)
+            const getUrl = (timeStr) => {
+                return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
+                       `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
+                       `LAYERS=GOES-East_ABI_GeoColor&WIDTH=2400&HEIGHT=2400&` +
+                       `CRS=EPSG:4326&BBOX=${bbox}&FORMAT=image/jpeg&TIME=${timeStr}`;
+            };
+
+            let now = new Date();
+            // GOES-19 takes about 20-30 mins to process "Full Disk" imagery
+            now.setMinutes(now.getMinutes() - 40);
+
+            // Try the last 5 possible 10-minute intervals
+            for (let i = 0; i < 5; i++) {
                 const mins = Math.floor(now.getUTCMinutes() / 10) * 10;
                 const timeStr = now.getUTCFullYear() + "-" + 
                                 String(now.getUTCMonth() + 1).padStart(2, '0') + "-" + 
@@ -69,22 +73,18 @@
                                 String(now.getUTCHours()).padStart(2, '0') + ":" + 
                                 String(mins).padStart(2, '0') + ":00Z";
 
-                const url = `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
-                            `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
-                            `LAYERS=${LAYER}&WIDTH=1920&HEIGHT=1080&CRS=EPSG:4326&` +
-                            `BBOX=${BBOX}&FORMAT=image/jpeg&TIME=${timeStr}`;
-
-                const isImageOk = await testImage(url);
-                if (isImageOk) {
+                const url = getUrl(timeStr);
+                const success = await testImage(url);
+                
+                if (success) {
                     bg.style.backgroundImage = `url('${url}')`;
                     bg.style.opacity = '1';
-                    status.innerText = `LIVE SATELLITE • DC METRO • ${timeStr}`;
+                    status.innerText = `GOES-19 FULL DISK • ${timeStr}`;
                     return;
                 }
-                // If failed, move back 10 minutes and try again
                 now.setMinutes(now.getMinutes() - 10);
             }
-            status.innerText = "SATELLITE DATA TEMPORARILY OFFLINE";
+            status.innerText = "SATELLITE DATA OFFLINE";
         }
 
         function testImage(url) {
@@ -96,9 +96,8 @@
             });
         }
 
-        initSatellite();
-        // Check for new imagery every 10 minutes
-        setInterval(initSatellite, 600000);
+        updateGoes19();
+        setInterval(updateGoes19, 600000); // Refresh every 10 mins
     </script>
 </body>
 </html>
