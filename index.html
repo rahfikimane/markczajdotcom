@@ -6,102 +6,94 @@
     <title>Mark Czajkowski | Orbital</title>
     <style>
         :root { --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body, html { 
             height: 100%; width: 100%; background: #000; 
             color: white; font-family: var(--ios-font);
-            overscroll-behavior-y: contain; overflow: hidden;
+            overflow: hidden; overscroll-behavior: none;
         }
 
-        /* The Earth "Marble" Container */
-        #viewport {
+        /* 3D Stage */
+        #stage {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+            perspective: 1200px; /* Creates the depth for the angle */
             display: flex; justify-content: center; align-items: center;
-            z-index: 1;
+            background: radial-gradient(circle at 50% 50%, #050505 0%, #000 100%);
         }
 
-        #earth-mask {
-            position: relative;
-            width: 130vh; height: 130vh; /* Large scale for orbital curve */
-            border-radius: 50%;
-            overflow: hidden;
-            box-shadow: inset -50px -50px 100px #000, 0 0 40px rgba(0, 162, 255, 0.1);
-            background: #000;
-        }
-
-        #bg {
-            width: 100%; height: 100%;
-            background-size: cover; background-position: center;
-            transition: filter 2s ease, opacity 1s ease;
+        /* The Tilted Earth Plane */
+        #earth-plane {
+            width: 150vw; height: 150vh; /* Oversized to fill screen during tilt */
+            background-size: cover;
+            background-position: center;
+            transform: rotateX(25deg) rotateY(-10deg) translateY(-5%); /* The "Angled Coast" view */
+            transition: opacity 2s ease, filter 2s ease;
             filter: brightness(1.1) contrast(1.1);
+            opacity: 0;
+            box-shadow: inset 0 0 100px #000;
         }
 
-        /* Atmospheric Glow */
-        .haze {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.85) 100%);
-            pointer-events: none; z-index: 2;
+        /* Atmosphere / Horizon Glow */
+        .horizon {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 40%;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, transparent 100%);
+            z-index: 2; pointer-events: none;
         }
 
-        /* iOS Interface Overlay */
-        .interface {
-            position: relative; z-index: 10; height: 100dvh;
+        /* UI Layer */
+        .ui {
+            position: absolute; z-index: 10; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; text-align: center; pointer-events: none;
         }
 
         h1 {
-            font-size: clamp(1.8rem, 8vw, 4rem); font-weight: 200;
+            font-size: clamp(2rem, 10vw, 5rem); font-weight: 200;
             letter-spacing: 0.4em; text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(0,0,0,1);
+            text-shadow: 0 0 50px rgba(0,0,0,1);
         }
 
-        .sub {
-            margin-top: 15px; font-size: 0.7rem; letter-spacing: 0.5em;
+        .status {
+            margin-top: 10px; font-size: 0.7rem; letter-spacing: 0.5em;
             opacity: 0.4; text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div id="viewport">
-        <div id="earth-mask">
-            <div id="bg"></div>
-            <div class="haze"></div>
-        </div>
+    <div id="stage">
+        <div id="earth-plane"></div>
+        <div class="horizon"></div>
     </div>
 
-    <div class="interface">
+    <div class="ui">
         <h1>Mark Czajkowski</h1>
-        <div id="mode-status" class="sub">ORBITAL SYNC</div>
+        <div id="status" class="status">ESTABLISHING ORBIT...</div>
     </div>
 
     <script>
-        function updateImagery() {
-            const bg = document.getElementById('bg');
-            const status = document.getElementById('mode-status');
-            const now = new Date();
-            const hour = now.getHours();
+        function updateOrbitalView() {
+            const plane = document.getElementById('earth-plane');
+            const status = document.getElementById('status');
+            const hour = new Date().getHours();
 
-            // DC / Eastern Shore Centered BBOX
-            const bbox = "34,-82,43,-72";
+            // High-Res Eastern Seaboard View (Full Screen)
+            // BBOX: 30N (Florida) to 48N (Maine), -85W to -65W
+            const bbox = "30,-85,48,-65"; 
             
             let layer = "";
-            let timeStr = "2023-10-01"; // Default cloudless day snapshot
+            let mode = "";
 
-            // Logic to switch layers based on current time (7:51 PM is Night)
+            // Dynamic Day/Night check
             if (hour >= 18 || hour < 6) {
-                // NIGHT MODE: NASA Black Marble (City Lights)
                 layer = "VIIRS_Black_Marble";
-                status.innerText = "NIGHT SECTOR • EASTERN SHORE";
-                bg.style.filter = "brightness(1.4) contrast(1.2) saturate(1.1)";
+                mode = "NIGHT SECTOR";
+                plane.style.filter = "brightness(1.5) contrast(1.2) saturate(1.1)";
             } else {
-                // DAY MODE: NASA Blue Marble (Cloudless Earth)
                 layer = "BlueMarble_NextGeneration";
-                status.innerText = "DAY SECTOR • EASTERN SHORE";
-                bg.style.filter = "brightness(1.1) contrast(1.1) saturate(1.2)";
+                mode = "DAY SECTOR";
+                plane.style.filter = "brightness(1.1) contrast(1.1) saturate(1.2)";
             }
 
             const url = `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
@@ -109,18 +101,18 @@
                         `LAYERS=${layer}&WIDTH=2048&HEIGHT=2048&` +
                         `CRS=EPSG:4326&BBOX=${bbox}&FORMAT=image/jpeg`;
 
-            // Preload to prevent flickering
             const img = new Image();
             img.src = url;
             img.onload = () => {
-                bg.style.backgroundImage = `url('${url}')`;
-                bg.style.opacity = '1';
+                plane.style.backgroundImage = `url('${url}')`;
+                plane.style.opacity = '1';
+                status.innerText = `${mode} • EASTERN SEABOARD`;
             };
         }
 
-        updateImagery();
-        // Re-check every hour to see if we need to switch from Day to Night
-        setInterval(updateImagery, 3600000);
+        updateOrbitalView();
+        // Update every hour to check for day/night flip
+        setInterval(updateOrbitalView, 3600000);
     </script>
 </body>
 </html>
