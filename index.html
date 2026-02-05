@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mark Czajkowski | GOES-19 Live</title>
+    <title>Mark Czajkowski | GOES-19 Operational</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -16,7 +16,7 @@
         }
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 0%, rgba(0,0,0,0.85) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 100%);
             z-index: 2;
         }
         .content {
@@ -24,14 +24,14 @@
             justify-content: center; align-items: center; height: 100%; text-align: center;
         }
         h1 {
-            font-size: clamp(2rem, 8vw, 4.5rem); font-weight: 200;
-            letter-spacing: 0.3em; text-transform: uppercase;
-            text-shadow: 0 0 40px rgba(0,0,0,1);
+            font-size: clamp(2rem, 8vw, 4.2rem); font-weight: 200;
+            letter-spacing: 0.4em; text-transform: uppercase;
+            text-shadow: 0 0 50px rgba(0,0,0,1);
         }
         .status {
-            margin-top: 20px; font-size: 0.6rem; letter-spacing: 0.5em;
-            opacity: 0.4; font-weight: 300; padding: 10px 20px;
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+            margin-top: 30px; font-size: 0.6rem; letter-spacing: 0.6em;
+            opacity: 0.4; font-weight: 300; border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 15px;
         }
     </style>
 </head>
@@ -42,64 +42,60 @@
 
     <div class="content">
         <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">HUNTING GOES-19 SIGNAL...</div>
+        <div id="status" class="status">PINGING GOES-19 ORBITER...</div>
     </div>
 
     <script>
-        async function updateGoes19() {
+        async function fetchSatellite() {
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            // Full Disk Coordinates for GOES-East
-            const bbox = "-90,-180,90,180"; 
+            // GOES-19 True Color Layer for 2026
             const layer = "GOES-East_ABI_GeoColor";
+            
+            // We use a slightly wider 4:3 crop to ensure it fills most screens perfectly
+            const bbox = "-60,-130,60,-20"; 
 
-            async function checkImage(timeStr) {
-                const url = `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
-                           `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
-                           `LAYERS=${layer}&WIDTH=1200&HEIGHT=1200&` +
-                           `CRS=EPSG:4326&BBOX=${bbox}&FORMAT=image/jpeg&TIME=${timeStr}`;
+            const getUrl = (timeStr) => {
+                return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
+                       `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
+                       `LAYERS=${layer}&WIDTH=1600&HEIGHT=1200&` +
+                       `CRS=EPSG:4326&BBOX=${bbox}&FORMAT=image/jpeg&TIME=${timeStr}`;
+            };
+
+            // Start 50 minutes ago - GOES-19 Full Disk takes significant processing time
+            let checkTime = new Date();
+            checkTime.setMinutes(checkTime.getMinutes() - 50);
+
+            for (let i = 0; i < 10; i++) {
+                const mins = Math.floor(checkTime.getUTCMinutes() / 10) * 10;
+                const timeStr = checkTime.toISOString().split('.')[0].slice(0, 14) + mins + ":00Z";
+
+                const url = getUrl(timeStr);
+                const active = await tryImage(url);
                 
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => resolve(url);
-                    img.onerror = () => resolve(null);
-                    img.src = url;
-                });
-            }
-
-            // Start from "Now" and look back 2 hours in 10-minute steps
-            let searchTime = new Date();
-            let foundUrl = null;
-            let finalTimeStr = "";
-
-            for (let i = 0; i < 12; i++) {
-                const mins = Math.floor(searchTime.getUTCMinutes() / 10) * 10;
-                const timeStr = searchTime.getUTCFullYear() + "-" + 
-                                String(searchTime.getUTCMonth() + 1).padStart(2, '0') + "-" + 
-                                String(searchTime.getUTCDate()).padStart(2, '0') + "T" + 
-                                String(searchTime.getUTCHours()).padStart(2, '0') + ":" + 
-                                String(mins).padStart(2, '0') + ":00Z";
-
-                foundUrl = await checkImage(timeStr);
-                if (foundUrl) {
-                    finalTimeStr = timeStr;
-                    break; 
+                if (active) {
+                    bg.style.backgroundImage = `url('${url}')`;
+                    bg.style.opacity = '1';
+                    status.innerText = `GOES-19 • OPERATIONAL • ${timeStr}`;
+                    return;
                 }
-                searchTime.setMinutes(searchTime.getMinutes() - 10);
+                checkTime.setMinutes(checkTime.getMinutes() - 10);
             }
-
-            if (foundUrl) {
-                bg.style.backgroundImage = `url('${foundUrl}')`;
-                bg.style.opacity = '1';
-                status.innerText = `GOES-19 FULL DISK • ${finalTimeStr}`;
-            } else {
-                status.innerText = "SATELLITE DATA TEMPORARILY OFFLINE";
-            }
+            status.innerText = "OFFLINE: CHECKING BACKUP FEED...";
         }
 
-        updateGoes19();
-        setInterval(updateGoes19, 600000); // Sync every 10 mins
+        function tryImage(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url;
+            });
+        }
+
+        fetchSatellite();
+        setInterval(fetchSatellite, 600000);
     </script>
 </body>
 </html>
