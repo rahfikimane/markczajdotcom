@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mark Czajkowski | Flyovers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mark Czajkowski</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body, html { 
             height: 100%; width: 100%; background: #000; 
-            overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+            overscroll-behavior: none;
         }
 
         /* Full-screen Background Video */
@@ -19,42 +20,46 @@
             left: 50%;
             min-width: 100%;
             min-height: 100%;
-            width: auto;
-            height: auto;
             z-index: -1;
             transform: translate(-50%, -50%);
-            object-fit: cover; /* Ensures video fills screen without stretching */
+            object-fit: cover;
             background-color: #000;
         }
 
-        /* Overlay to darken slightly if text is hard to read */
-        .overlay {
+        /* Centered Content Layer */
+        .content {
             position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: 0;
-        }
-
-        /* Centered Text */
-        .content {
-            position: relative;
-            z-index: 10;
-            height: 100dvh;
+            width: 100vw; height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
+            z-index: 10;
             pointer-events: none;
         }
 
         h1 {
             color: white;
-            font-size: clamp(2rem, 8vw, 5rem);
+            font-size: clamp(1.8rem, 8vw, 5rem);
             font-weight: 200;
-            letter-spacing: 0.5em;
             text-transform: uppercase;
-            text-align: center;
+            
+            /* THE CENTERING FIX: */
+            letter-spacing: 0.5em;
+            padding-left: 0.5em; /* This offsets the extra space after the last 'I' */
+            
             text-shadow: 0 0 40px rgba(0,0,0,0.8);
+            width: 100%;
+            line-height: 1.2;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.15); /* Subtle dimming for legibility */
+            z-index: 1;
         }
     </style>
 </head>
@@ -74,7 +79,6 @@
         const video = document.getElementById('video-bg');
         const source = document.getElementById('video-source');
         
-        // Define your 5 video filenames here
         const playlist = [
             'flyovers/video1.mp4',
             'flyovers/video2.mp4',
@@ -86,21 +90,15 @@
         let currentVideoIndex = 0;
 
         video.addEventListener('ended', function() {
-            // Move to next video or loop back to start
             currentVideoIndex = (currentVideoIndex + 1) % playlist.length;
-            
-            // Update source and reload
             source.src = playlist[currentVideoIndex];
             video.load();
             video.play();
         });
 
-        // Some mobile browsers require a "touch" to start video if autoplay fails.
-        // This ensures the video starts if the user interacts with the page.
-        document.body.addEventListener('touchstart', function() {
-            if (video.paused) {
-                video.play();
-            }
+        // Forced play for mobile low-power modes
+        document.body.addEventListener('touchstart', () => {
+            if (video.paused) video.play();
         }, { once: true });
     </script>
 </body>
