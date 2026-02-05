@@ -4,33 +4,45 @@
     <meta charset="UTF-8">
     <title>Mark Czajkowski | DC Live</title>
     <style>
+        /* Reset and Full Screen setup */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body, html { 
             height: 100%; width: 100%; background: #000; color: white;
             font-family: -apple-system, system-ui, sans-serif; overflow: hidden;
         }
+
+        /* The Background Layer */
         #bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center;
+            background-size: cover;      /* Forces image to fill screen */
+            background-position: center; /* PINS DC TO THE MIDDLE */
+            background-repeat: no-repeat;
             transition: opacity 2s ease; opacity: 0; z-index: 1;
         }
+
+        /* The Vignette Overlay */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%);
+            background: radial-gradient(circle, transparent 10%, rgba(0,0,0,0.8) 100%);
             z-index: 2;
         }
+
+        /* The Name - Centered Perfectly */
         .content {
             position: relative; z-index: 3; display: flex; flex-direction: column;
             justify-content: center; align-items: center; height: 100%; text-align: center;
         }
+
         h1 {
             font-size: clamp(2rem, 8vw, 4.5rem); font-weight: 200;
             letter-spacing: 0.3em; text-transform: uppercase;
-            text-shadow: 0 0 30px #000;
+            text-shadow: 0 0 30px rgba(0,0,0,1);
         }
+
         .status {
             margin-top: 20px; font-size: 0.7rem; letter-spacing: 0.4em;
-            opacity: 0.5; font-weight: 400; padding: 10px 20px;
+            opacity: 0.5; padding: 10px 20px;
             border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
         }
     </style>
@@ -50,19 +62,18 @@
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            // Tight crop on the DC Metro Area
-            // WMS 1.3.0 Order: MinLat, MinLon, MaxLat, MaxLon
-            const bbox = "38.5,-77.5,39.3,-76.6"; 
+            // This Bounding Box centers DC/Arlington/Alexandria
+            // MinLat, MinLon, MaxLat, MaxLon
+            const bbox = "38.6,-77.3,39.2,-76.8"; 
 
             const getUrl = (dateStr) => {
                 return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
                        `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
                        `LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor,Coastlines_15m&` +
-                       `WIDTH=1920&HEIGHT=1080&CRS=EPSG:4326&BBOX=${bbox}&` +
+                       `WIDTH=2560&HEIGHT=1440&CRS=EPSG:4326&BBOX=${bbox}&` +
                        `FORMAT=image/jpeg&TIME=${dateStr}`;
             };
 
-            // Loop back through the last 3 days to find the most recent pass
             let date = new Date();
             for (let i = 0; i < 3; i++) {
                 const dateStr = date.toISOString().split('T')[0];
