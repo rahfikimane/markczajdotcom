@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Czajkowski | ISS Orbit</title>
+    <title>Mark Czajkowski | Orbital</title>
     <style>
         :root { --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,108 +14,123 @@
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* The Earth Container (The ISS Window) */
-        #earth-viewport {
+        /* The "Earth" Marble */
+        #earth-container {
             position: relative;
-            width: 95vh; height: 95vh; /* Circular view like an iPhone wallpaper */
+            width: 110vh; height: 110vh; /* Large circular viewport */
             border-radius: 50%;
-            overflow: hidden;
-            box-shadow: 0 0 100px rgba(0, 162, 255, 0.2), inset 0 0 50px #000;
             background: #000;
+            overflow: hidden;
+            box-shadow: 
+                inset -50px -50px 100px rgba(0,0,0,0.9),
+                0 0 80px rgba(0, 140, 255, 0.15); /* Atmospheric glow */
             z-index: 1;
         }
 
         #bg {
-            width: 130%; height: 130%; /* Oversize to hide map edges */
-            position: absolute; top: -15%; left: -15%;
+            width: 100%; height: 100%;
             background-size: cover;
             background-position: center;
-            transition: opacity 2s ease-in-out;
             filter: brightness(1.1) contrast(1.1) saturate(1.1);
+            transition: opacity 2s ease;
+            opacity: 0;
         }
 
-        /* Atmospheric Glow Effect */
-        .atmosphere {
+        /* Atmospheric haze overlay */
+        .haze {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            box-shadow: inset 0 0 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(100,200,255,0.3);
+            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.8) 100%);
             pointer-events: none; z-index: 2;
         }
 
-        /* Typography Overlay */
-        .ui-layer {
+        /* iOS UI Layer */
+        .interface {
             position: absolute; z-index: 3; text-align: center;
-            pointer-events: none; width: 100%;
+            width: 100%; pointer-events: none;
         }
 
         h1 {
-            font-size: clamp(1.5rem, 5vw, 3.5rem); 
-            font-weight: 200; letter-spacing: 0.5em; 
+            font-size: clamp(2rem, 6vw, 4rem); 
+            font-weight: 200; letter-spacing: 0.4em; 
             text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(0,0,0,1);
+            text-shadow: 0 0 40px rgba(0,0,0,1);
+            margin-bottom: 5px;
         }
 
-        .status {
-            margin-top: 10px; font-size: 0.6rem; letter-spacing: 0.4em;
-            opacity: 0.5; text-transform: uppercase;
+        .clock {
+            font-size: 6rem; font-weight: 600; letter-spacing: -0.02em;
+            margin-top: -10px; opacity: 0.9;
+        }
+
+        .location {
+            font-size: 0.7rem; letter-spacing: 0.5em; opacity: 0.4;
+            margin-top: 20px; text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div id="earth-viewport">
+    <div id="earth-container">
         <div id="bg"></div>
-        <div class="atmosphere"></div>
+        <div class="haze"></div>
     </div>
 
-    <div class="ui-layer">
-        <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">SYNCHRONIZING WITH GOES-19...</div>
+    <div class="interface">
+        <h1 id="name">Mark Czajkowski</h1>
+        <div id="time" class="clock">00:00</div>
+        <div class="location">Eastern Shore Sector • GOES-19</div>
     </div>
 
     <script>
-        async function updateEarth() {
+        function updateUI() {
+            const now = new Date();
+            document.getElementById('time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+        }
+        setInterval(updateUI, 1000);
+        updateUI();
+
+        async function fetchOrbitalView() {
             const bg = document.getElementById('bg');
-            const status = document.getElementById('status');
             
-            // ISS VIEW BBOX: Centered on 39N, 77W (DC) 
-            // Zoomed out to Eastern Seaboard for maximum sharpness and "Earth Curve"
-            const bbox = "25,-95,50,-65"; 
+            // BBOX for a "Pulled Out" Eastern Shore view.
+            // Shows Florida to Canada, and the Midwest to the Deep Atlantic.
+            const bbox = "15,-105,55,-55"; 
             const layer = "GOES-East_ABI_GeoColor";
 
-            const buildUrl = (timeStr) => {
+            const getUrl = (timeStr) => {
                 return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
                        `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
-                       `LAYERS=${layer}&WIDTH=3000&HEIGHT=3000&` + // High density for sharpness
+                       `LAYERS=${layer}&WIDTH=2048&HEIGHT=2048&` + 
                        `CRS=EPSG:4326&BBOX=${bbox}&FORMAT=image/jpeg&TIME=${timeStr}`;
             };
 
-            let now = new Date();
-            now.setMinutes(now.getMinutes() - 40); // Standard NASA processing lag
+            let checkTime = new Date();
+            // Start 40 mins back to ensure NASA has finished the full-disk render
+            checkTime.setMinutes(checkTime.getMinutes() - 40);
 
-            for (let i = 0; i < 10; i++) {
-                const roundedMins = Math.floor(now.getUTCMinutes() / 10) * 10;
-                const timeStr = now.toISOString().split('.')[0].slice(0, 14) + roundedMins + ":00Z";
-                const testUrl = buildUrl(timeStr);
+            for (let i = 0; i < 12; i++) {
+                const mins = Math.floor(checkTime.getUTCMinutes() / 10) * 10;
+                const timeStr = checkTime.toISOString().split('.')[0].slice(0, 14) + mins + ":00Z";
+                const url = getUrl(timeStr);
                 
-                const success = await new Promise(r => {
+                const exists = await new Promise(r => {
                     const img = new Image();
                     img.onload = () => r(true);
                     img.onerror = () => r(false);
-                    img.src = testUrl;
+                    img.src = url;
                 });
 
-                if (success) {
-                    bg.style.backgroundImage = `url('${testUrl}')`;
+                if (exists) {
+                    bg.style.backgroundImage = `url('${url}')`;
                     bg.style.opacity = '1';
-                    status.innerText = `GOES-19 • ORBITAL SECTOR DC • ${timeStr}`;
                     return;
                 }
-                now.setMinutes(now.getMinutes() - 10);
+                checkTime.setMinutes(checkTime.getMinutes() - 10);
             }
         }
 
-        updateEarth();
-        setInterval(updateEarth, 600000); // Check for new scan every 10 mins
+        fetchOrbitalView();
+        setInterval(fetchOrbitalView, 600000);
     </script>
 </body>
 </html>
