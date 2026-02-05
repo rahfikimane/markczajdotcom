@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Czajkowski | DC Space View</title>
+    <title>Mark Czajkowski | DC Metro Live</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -17,7 +17,7 @@
         }
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 10%, rgba(0,0,0,0.8) 100%);
+            background: radial-gradient(circle, transparent 0%, rgba(0,0,0,0.7) 100%);
             z-index: 2;
         }
         .content {
@@ -25,13 +25,14 @@
             justify-content: center; align-items: center; height: 100%; text-align: center;
         }
         h1 {
-            font-size: clamp(2rem, 8vw, 4.5rem); font-weight: 200;
+            font-size: clamp(1.8rem, 7vw, 4rem); font-weight: 200;
             letter-spacing: 0.4em; text-transform: uppercase;
-            text-shadow: 0 0 40px rgba(0,0,0,1);
+            text-shadow: 0 0 30px rgba(0,0,0,1);
         }
         .status {
-            margin-top: 20px; font-size: 0.6rem; letter-spacing: 0.5em;
-            opacity: 0.4; font-weight: 300; text-transform: uppercase;
+            margin-top: 25px; font-size: 0.6rem; letter-spacing: 0.5em;
+            opacity: 0.5; font-weight: 300; padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
         }
     </style>
 </head>
@@ -42,58 +43,49 @@
 
     <div class="content">
         <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">Awaiting Satellite Link...</div>
+        <div id="status" class="status">ESTABLISHING ORBITAL UPLINK...</div>
     </div>
 
     <script>
-        async function fetchVIIRS() {
+        async function loadDCMetro() {
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            // DC Metro Bounding Box (Slightly wider for context)
-            const bbox = "38.4,-77.8,39.6,-76.4";
-            
+            // Tight Bounding Box for DC Metro Area (Lat/Lon)
+            // minLat, minLon, maxLat, maxLon
+            // Focused on: Bethesda (N), Alexandria (S), Fairfax (W), Cap Heights (E)
+            const bbox = "38.7,-77.2,39.1,-76.8"; 
+
             const getUrl = (dateObj) => {
-                const dateStr = dateObj.toISOString().split('T')[0];
+                const d = dateObj.toISOString().split('T')[0];
                 return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?` +
                        `SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&` +
                        `LAYERS=VIIRS_SNPP_CorrectedReflectance_TrueColor,Coastlines_15m&` +
-                       `WIDTH=2560&HEIGHT=1440&CRS=EPSG:4326&BBOX=${bbox}&` +
-                       `FORMAT=image/jpeg&TIME=${dateStr}`;
+                       `WIDTH=3000&HEIGHT=2000&CRS=EPSG:4326&BBOX=${bbox}&` +
+                       `FORMAT=image/jpeg&TIME=${d}`;
             };
 
-            const validateImage = (url) => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => resolve(true);
-                    img.onerror = () => resolve(false);
-                    img.src = url;
-                });
-            };
-
-            // Strategy: Try today, then yesterday, then 2 days ago
-            let testDate = new Date();
-            let success = false;
+            // Orbiting satellites update daily. We check today, then yesterday.
+            let date = new Date();
+            let found = false;
 
             for (let i = 0; i < 3; i++) {
-                const url = getUrl(testDate);
-                const isValid = await validateImage(url);
-                if (isValid) {
-                    bg.style.backgroundImage = `url('${url}')`;
+                const testUrl = getUrl(date);
+                const check = await fetch(testUrl);
+                if (check.ok) {
+                    bg.style.backgroundImage = `url('${testUrl}')`;
                     bg.style.opacity = '1';
-                    status.innerText = `NASA VIIRS HIGH-RES • ${testDate.toISOString().split('T')[0]}`;
-                    success = true;
+                    status.innerText = `DC METRO • NASA VIIRS • ${date.toISOString().split('T')[0]}`;
+                    found = true;
                     break;
                 }
-                testDate.setDate(testDate.getDate() - 1);
+                date.setDate(date.getDate() - 1);
             }
 
-            if (!success) status.innerText = "SATELLITE DATA TEMPORARILY OFFLINE";
+            if (!found) status.innerText = "SATELLITE FEED UNAVAILABLE";
         }
 
-        fetchVIIRS();
-        // High-res orbits are daily, so we only need to refresh every hour
-        setInterval(fetchVIIRS, 3600000);
+        loadDCMetro();
     </script>
 </body>
 </html>
