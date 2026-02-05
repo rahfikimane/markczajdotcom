@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mark Czajkowski | DC Metro Live</title>
+    <title>Mark Czajkowski</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -42,7 +42,7 @@
 
     <div class="content">
         <h1>Mark Czajkowski</h1>
-        <div id="status" class="status">CENTERING DC METRO FEED...</div>
+        <div id="status" class="status">SYNCING WITH GOES-19...</div>
     </div>
 
     <script>
@@ -50,9 +50,9 @@
             const bg = document.getElementById('bg');
             const status = document.getElementById('status');
             
-            // Refined BBOX for DC Metro Area (MinLat, MinLon, MaxLat, MaxLon)
-            // Centered on the National Mall/Potomac River
-            const bbox = "38.75,-77.20,39.05,-76.85"; 
+            // PRECISE DC METRO BOUNDS (Lat, Lon order for WMS 1.3.0)
+            // This frames the area from Dulles to the Bay.
+            const bbox = "38.5,-77.5,39.3,-76.5"; 
             const layer = "GOES-East_ABI_GeoColor";
 
             const getUrl = (timeStr) => {
@@ -63,8 +63,8 @@
             };
 
             let checkTime = new Date();
-            // GOES-19 Latency Buffer (Start 50 mins ago)
-            checkTime.setMinutes(checkTime.getMinutes() - 50);
+            // GOES-19 can have up to 60 min delay on public WMS endpoints
+            checkTime.setMinutes(checkTime.getMinutes() - 60);
 
             for (let i = 0; i < 12; i++) {
                 const mins = Math.floor(checkTime.getUTCMinutes() / 10) * 10;
@@ -76,25 +76,4 @@
                 if (active) {
                     bg.style.backgroundImage = `url('${url}')`;
                     bg.style.opacity = '1';
-                    status.innerText = `GOES-19 • DC METRO • ${timeStr}`;
-                    return;
-                }
-                checkTime.setMinutes(checkTime.getMinutes() - 10);
-            }
-            status.innerText = "LINK LOST: RE-ESTABLISHING...";
-        }
-
-        function tryImage(url) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = url;
-            });
-        }
-
-        fetchSatellite();
-        setInterval(fetchSatellite, 600000);
-    </script>
-</body>
-</html>
+                    status.innerText = `GOES-19 • DC METRO • ${
