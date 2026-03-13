@@ -76,10 +76,7 @@
 </head>
 <body>
 
-    <video id="video-bg" muted playsinline autoplay>
-        <source id="video-source" src="flyovers/video1.mp4" type="video/mp4">
-    </video>
-
+   
     <div class="scrim"></div>
 
     <div class="content-wrapper">
@@ -87,34 +84,10 @@
     </div>
 <script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="9dca72f0-5a48-4ef2-a262-9df7d493f4da" async>
     
-    <script>
-        const video = document.getElementById('video-bg');
-        const source = document.getElementById('video-source');
-        
-        const playlist = [
-            'flyovers/video1.mp4',
-            'flyovers/video2.mp4',
-            'flyovers/video3.mp4',
-            'flyovers/video4.mp4',
-            'flyovers/video5.mp4'
-        ];
-        
-        let currentVideoIndex = 0;
-
-        video.addEventListener('ended', () => {
-            currentVideoIndex = (currentVideoIndex + 1) % playlist.length;
-            source.src = playlist[currentVideoIndex];
-            video.load();
-            video.play();
-        });
-
-        // Ensure autoplay works on low power mode or strict iOS settings
-        document.addEventListener('touchstart', () => {
-            if (video.paused) video.play();
-        }, { once: true });
-    </script>
+   
 </body>
 </html>
+
 
 
 
