@@ -84,7 +84,7 @@
             min-height: 1.2em;
             text-align: center;
             opacity: 0;
-            transition: opacity 0.2s ease;
+            
         }
 
         .loader-keyword.visible { opacity: 1; }
@@ -247,7 +247,7 @@
 
     <div class="content-wrapper" id="main-content">
         <div class="name-block">
-            <h1>Mark Czajkowski</h1>
+            <h1><b>Mark Czajkowski</b></h1>
             <div class="divider"></div>
             <div class="subtitle">
                 <span>Senior Technical Lead</span><span class="sep">|</span>
@@ -279,8 +279,7 @@
             "trusted technical advisor",
             "real-time insights",
             "SharePoint custom development",
-            "security-first architecture",
-            "agile delivery",
+            "security-first architecture"
         ];
 
         const phase2 = [
@@ -292,7 +291,8 @@
             "federal compliance",
             "platform integration",
             "data-driven insights",
-            "solutions that deliver"
+            "agile delivery",
+            "solutions that last"
         ];
 
         const kwEl = document.getElementById('loader-kw');
@@ -300,16 +300,39 @@
         const loader = document.getElementById('loader');
         const content = document.getElementById('main-content');
 
+        function fadeOut(el, duration, cb) {
+            const start = performance.now();
+            (function tick(now) {
+                const t = Math.min((now - start) / duration, 1);
+                el.style.opacity = 1 - t;
+                if (t < 1) requestAnimationFrame(tick);
+                else { el.style.opacity = 0; cb(); }
+            })(performance.now());
+        }
+
+        function fadeIn(el, duration) {
+            el.style.opacity = 0;
+            const start = performance.now();
+            (function tick(now) {
+                const t = Math.min((now - start) / duration, 1);
+                el.style.opacity = t;
+                if (t < 1) requestAnimationFrame(tick);
+                else el.style.opacity = 1;
+            })(performance.now());
+        }
+
         function flash(text, progress, isBurst, cb) {
-            kwEl.classList.remove('visible', 'burst');
             const isLast = text === "solutions that last";
-            setTimeout(() => {
+            const outDur = isBurst ? 55 : 130;
+            const inDur  = isBurst ? 55 : 130;
+            const hold   = isLast ? 900 : isBurst ? 90 : 320;
+            fadeOut(kwEl, outDur, () => {
                 kwEl.textContent = text;
-                if (isBurst) kwEl.classList.add('burst');
-                kwEl.classList.add('visible');
+                kwEl.classList.toggle('burst', isBurst);
                 barEl.style.width = progress + '%';
-                setTimeout(cb, isLast ? 900 : isBurst ? 90 : 320);
-            }, isBurst ? 25 : 75);
+                fadeIn(kwEl, inDur);
+                setTimeout(cb, hold);
+            });
         }
 
         function runPhase(list, startPct, endPct, isBurst, done) {
