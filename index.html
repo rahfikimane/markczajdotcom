@@ -221,9 +221,58 @@
             flex-shrink: 0;
         }
 
+        /* ── HOSTING CREDIT ── */
+        .site-credit {
+            position: fixed;
+            right: clamp(1.1rem, 3.5vw, 2.5rem);
+            bottom: clamp(1.1rem, 3.5vw, 2rem);
+            z-index: 2;
+            text-align: right;
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            font-size: clamp(0.52rem, 1.3vw, 0.6rem);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.9;
+            opacity: 0;
+            transition: opacity 1.2s ease 0.6s;
+        }
+
+        .site-credit.visible { opacity: 1; }
+
+        .site-credit a {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 1px;
+            transition: color 0.35s ease, text-shadow 0.35s ease, border-color 0.35s ease;
+        }
+
+        .site-credit a:hover,
+        .site-credit a:focus-visible {
+            color: rgba(255,255,255,0.95);
+            border-bottom-color: rgba(255,255,255,0.5);
+            text-shadow: 0 0 18px rgba(255,255,255,0.45);
+            outline: none;
+        }
+
+        .site-credit .tagline {
+            display: block;
+            text-transform: none;
+            letter-spacing: 0.1em;
+            font-size: 0.95em;
+            color: rgba(255,255,255,0.26);
+        }
+
         @media (max-width: 600px) {
             .subtitle .sep { display: none; }
             .subtitle span { display: block; margin: 0.15rem 0; }
+            .site-credit { left: 0; right: 0; text-align: center; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .site-credit { transition: none; }
         }
     </style>
     <script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="9dca72f0-5a48-4ef2-a262-9df7d493f4da" async></script>
@@ -268,6 +317,11 @@
         </div>
     </div>
 
+    <div class="site-credit" id="site-credit">
+        Hosted by <a href="https://markc.tech/" target="_blank" rel="noopener">markc.tech</a>
+        <span class="tagline">Practical consulting. Launch-ready thinking.</span>
+    </div>
+
     <script>
         const phase1 = [
             "15+ years of experience",
@@ -300,6 +354,7 @@
         const barEl = document.getElementById('loader-bar');
         const loader = document.getElementById('loader');
         const content = document.getElementById('main-content');
+        const credit = document.getElementById('site-credit');
 
         function fadeOut(el, duration, cb) {
             const start = performance.now();
@@ -352,6 +407,7 @@
                 setTimeout(() => {
                     loader.classList.add('hidden');
                     content.classList.add('visible');
+                    credit.classList.add('visible');
                 }, 250);
             });
         });
