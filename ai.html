@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>The Working Code: AI on the Job | Mark Czajkowski</title>
+    <meta name="description" content="Four simple rules for using AI on the job in construction and the trades.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDAwIi8+CiAgPHRleHQgeD0iMTYiIHk9IjIyIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9IjMwMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxIj5NQzwvdGV4dD4KPC9zdmc+">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white: #fff;
+            --text: rgba(255,255,255,0.78);
+            --muted: rgba(255,255,255,0.5);
+            --faint: rgba(255,255,255,0.3);
+            --line: rgba(255,255,255,0.12);
+            --glow: 0 0 18px rgba(255,255,255,0.45);
+        }
+
+        html {
+            background: #000;
+            scroll-behavior: smooth;
+            scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 80px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar { display: none; }
+
+        body {
+            background: #000;
+            background-image: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.06), transparent 70%);
+            background-attachment: fixed;
+            color: var(--text);
+            font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 300;
+            font-size: 1.02rem;
+            line-height: 1.75;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: inherit; }
+        a:focus-visible { outline: 1px solid rgba(255,255,255,0.6); outline-offset: 4px; }
+
+        .wrap { max-width: 1040px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* Same small uppercase voice as the homepage */
+        .caps {
+            text-transform: uppercase;
+            letter-spacing: 0.28em;
+            font-size: clamp(0.58rem, 1.5vw, 0.66rem);
+            font-weight: 300;
+        }
+
+        .glow-link {
+            text-decoration: none;
+            color: var(--muted);
+            transition: color 0.35s ease, text-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .glow-link:hover, .glow-link:focus-visible { color: var(--white); text-shadow: var(--glow); }
+
+        /* ── TOP BAR ── */
+        header.bar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding-top: env(safe-area-inset-top, 0px);
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+        }
+        header.bar .wrap { display: flex; justify-content: space-between; align-items: center; height: 64px; gap: 1rem; }
+        .wordmark { letter-spacing: 0.4em; font-weight: 200; font-size: clamp(0.62rem, 1.8vw, 0.78rem); color: var(--white); }
+        header nav { display: flex; gap: clamp(1rem, 3vw, 2rem); }
+        @media (max-width: 560px) { header nav .hide-sm { display: none; } }
+
+        /* ── PAGE ENTRANCE (one moment, like the homepage reveal) ── */
+        main { opacity: 0; transform: translateY(10px); transition: opacity 1s ease 0.1s, transform 1s ease 0.1s; }
+        main.visible { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) { main { transition: none; opacity: 1; transform: none; } }
+
+        /* ── HERO ── */
+        .hero { padding: clamp(5rem, 14vw, 9rem) 0 clamp(4rem, 9vw, 6rem); text-align: center; }
+        .hero .caps { color: var(--muted); }
+        .hero h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 300;
+            color: var(--white);
+            font-size: clamp(2.4rem, 7vw, 5rem);
+            line-height: 1.05;
+            letter-spacing: -0.01em;
+            margin: 1.6rem auto 0;
+            max-width: 15ch;
+        }
+        .hero h1 em { display: block; font-style: italic; color: var(--muted); }
+        .divider { width: 40px; height: 0.5px; background: rgba(255,255,255,0.4); margin: 2.2rem auto; }
+        .hero p.lede { max-width: 36rem; margin: 0 auto; color: var(--text); font-size: clamp(1rem, 2vw, 1.12rem); }
+
+        /* ── SECTIONS ── */
+        section { padding: clamp(3.5rem, 9vw, 6rem) 0; border-top: 1px solid var(--line); }
+        .section-head { margin-bottom: 3rem; max-width: 40rem; }
+        h2 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 300;
+            color: var(--white);
+            font-size: clamp(2rem, 4.5vw, 3rem);
+            line-height: 1.1;
+        }
+        .section-head p { margin-top: 0.8rem; color: var(--muted); }
+
+        /* ── PRINCIPLES ── */
+        .principles { list-style: none; counter-reset: p; }
+        .principles li {
+            counter-increment: p;
+            display: grid;
+            grid-template-columns: 4rem minmax(0, 18rem) minmax(0, 1fr);
+            gap: 1.5rem 2rem;
+            padding: 2.2rem 0;
+            border-top: 1px solid var(--line);
+        }
+        .principles li:last-child { border-bottom: 1px solid var(--line); }
+        .principles li::before {
+            content: counter(p);
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 300;
+            font-size: 2.8rem;
+            line-height: 0.9;
+            color: var(--faint);
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+        }
+        .principles li:hover::before { color: var(--white); text-shadow: 0 0 22px rgba(255,255,255,0.5); }
+        .principles h3 {
+            font-weight: 400;
+            color: var(--white);
+            font-size: 1.12rem;
+            line-height: 1.4;
+            letter-spacing: 0.02em;
+        }
+        .principles .body p { max-width: 34rem; }
+        .principles .practice {
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 1px solid rgba(255,255,255,0.3);
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+        .principles .practice .caps { display: block; color: var(--faint); margin-bottom: 0.2rem; }
+        @media (max-width: 820px) {
+            .principles li { grid-template-columns: 2.6rem 1fr; }
+            .principles .body { grid-column: 2; }
+            .principles li::before { font-size: 2.1rem; }
+        }
+
+        /* ── HABITS ── */
+        .habits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+        .habits > div { padding: 2rem 2rem 0 0; }
+        .habits > div + div { padding-left: 2rem; border-left: 1px solid var(--line); }
+        .habits h3 { color: var(--white); margin-bottom: 1rem; }
+        .habits ul { list-style: none; }
+        .habits li { padding: 0.55rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        @media (max-width: 820px) {
+            .habits { grid-template-columns: 1fr; }
+            .habits > div, .habits > div + div { padding: 2rem 0 0; border-left: 0; }
+        }
+
+        /* ── DO / DON'T ── */
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; min-width: 560px; border-collapse: collapse; }
+        th { text-align: left; color: var(--white); padding: 0 0 1rem; }
+        th + th, td + td { padding-left: 2rem; border-left: 1px solid var(--line); }
+        th:last-child { color: var(--faint); }
+        td { padding: 1.1rem 2rem 1.1rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+        td:last-child { color: var(--muted); padding-right: 0; }
+
+        /* ── ADOPT ── */
+        .steps { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; counter-reset: s; }
+        .steps li { counter-increment: s; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 1.2rem; }
+        .steps li::before { content: "Step " counter(s); display: block; color: var(--faint); text-transform: uppercase; letter-spacing: 0.28em; font-size: 0.62rem; margin-bottom: 0.6rem; }
+        .steps h3 { color: var(--white); font-weight: 400; font-size: 1.05rem; margin-bottom: 0.4rem; }
+        .steps p { color: var(--muted); font-size: 0.95rem; }
+        @media (max-width: 900px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+
+        /* ── PLEDGE ── */
+        .pledge { text-align: center; }
+        .pledge blockquote {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-style: italic;
+            font-weight: 300;
+            color: var(--white);
+            font-size: clamp(1.7rem, 4.2vw, 2.9rem);
+            line-height: 1.25;
+            max-width: 26ch;
+            margin: 0 auto;
+            transition: text-shadow 0.5s ease;
+        }
+        .pledge blockquote:hover { text-shadow: 0 0 35px rgba(255,255,255,0.35); }
+        .pledge p { margin-top: 1.6rem; color: var(--muted); }
+
+        /* ── WHERE IT HELPS ── */
+        .uses { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2.5rem; border-top: 1px solid var(--line); }
+        .uses li { padding: 1rem 0; border-bottom: 1px solid var(--line); color: var(--white); font-size: 1.08rem; }
+        @media (max-width: 640px) { .uses { grid-template-columns: 1fr; } }
+
+        body { font-size: 1.1rem; }
+        .principles h3 { font-size: 1.3rem; }
+
+        /* ── FOOTER (matches homepage credit) ── */
+        footer { border-top: 1px solid var(--line); padding: 2.5rem 0 3rem; }
+        footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem; }
+        footer .note { color: var(--faint); font-size: 0.85rem; max-width: 30rem; line-height: 1.7; }
+        .site-credit {
+            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: clamp(0.52rem, 1.3vw, 0.6rem);
+            color: rgba(255,255,255,0.3);
+            line-height: 1.9;
+        }
+        .site-credit a {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 1px;
+            transition: color 0.35s ease, text-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .site-credit a:hover, .site-credit a:focus-visible { color: #fff; border-bottom-color: rgba(255,255,255,0.5); text-shadow: var(--glow); outline: none; }
+        .site-credit .tagline { display: block; text-transform: none; letter-spacing: 0.1em; font-size: 0.95em; color: rgba(255,255,255,0.26); }
+        @media (max-width: 600px) {
+            footer .wrap { flex-direction: column; align-items: center; text-align: center; }
+            .site-credit { text-align: center; }
+        }
+    </style>
+    <script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="9dca72f0-5a48-4ef2-a262-9df7d493f4da" async></script>
+    <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "vuudw8h1z4");
+    </script>
+</head>
+<body>
+
+<header class="bar">
+    <div class="wrap">
+        <a class="caps wordmark glow-link" href="index.html">Mark Czajkowski</a>
+        <nav class="caps">
+            <a class="glow-link" href="#rules">Rules</a>
+            <a class="glow-link hide-sm" href="#uses">Where it helps</a>
+            <a class="glow-link" href="#glance">Quick list</a>
+        </nav>
+    </div>
+</header>
+
+<main id="page">
+    <div class="wrap hero">
+        <p class="caps">The Working Code</p>
+        <h1>AI is a tool. <em>You're still the one on the job.</em></h1>
+        <div class="divider"></div>
+        <p class="lede">Four simple rules for using AI apps like Claude at work, whether you're writing a quote, texting a customer, or figuring something out on site.</p>
+    </div>
+
+    <section id="rules">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>The four rules</h2>
+            </div>
+            <ol class="principles">
+                <li>
+                    <h3>Check it before you trust it</h3>
+                    <div class="body">
+                        <p>AI can sound sure and still be wrong. Double-check sizes, loads, code requirements, prices, and part numbers against the manual, the code book, or your supplier.</p>
+                        <p class="practice"><span class="caps">On the job</span>If AI gives you a breaker size, a refrigerant charge, or a span, check it like you would if a new guy told you.</p>
+                    </div>
+                </li>
+                <li>
+                    <h3>Keep customer info private</h3>
+                    <div class="body">
+                        <p>Don't type names, addresses, phone numbers, gate or alarm codes, or payment info into an AI app unless your company says that app is OK to use.</p>
+                        <p class="practice"><span class="caps">On the job</span>Ask it to "write a follow-up for a furnace repair." Leave out who and where.</p>
+                    </div>
+                </li>
+                <li>
+                    <h3>Be straight with customers</h3>
+                    <div class="body">
+                        <p>If AI helped write it, it's still your word. Never use it to fake reviews, pad a quote, or tell a customer something you can't back up.</p>
+                        <p class="practice"><span class="caps">On the job</span>If you wouldn't say it to the customer's face, don't send it.</p>
+                    </div>
+                </li>
+                <li>
+                    <h3>You make the call</h3>
+                    <div class="body">
+                        <p>AI can help you think. It doesn't decide. Anything about safety, code, or the customer's money is your call or your supervisor's.</p>
+                        <p class="practice"><span class="caps">On the job</span>When in doubt, stop and ask a person.</p>
+                    </div>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <section id="uses">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>Where it helps</h2>
+                <p>Good ways to save time, as long as you check the result.</p>
+            </div>
+            <ul class="uses">
+                <li>Cleaning up quotes, estimates, and job notes</li>
+                <li>Writing clear texts and emails to customers</li>
+                <li>Explaining a problem in plain words</li>
+                <li>Pulling key specs out of a long manual</li>
+                <li>Translating for a customer or crew member</li>
+                <li>Making a checklist for a job you don't do often</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="glance">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>Quick list</h2>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th class="caps" scope="col">Do</th><th class="caps" scope="col">Don't</th></tr></thead>
+                    <tbody>
+                        <tr><td>Use it to write and explain things faster</td><td>Send anything without reading it first</td></tr>
+                        <tr><td>Check numbers against the manual or code</td><td>Trust a size, load, or price just because AI said it</td></tr>
+                        <tr><td>Leave customer details out</td><td>Type in addresses, codes, or payment info</td></tr>
+                        <tr><td>Ask a person when it's about safety</td><td>Let an app make a safety call</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="pledge">
+        <div class="wrap">
+            <blockquote>Use the tool. Own the work.</blockquote>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="wrap">
+        <p class="note">General guidance. Always follow your company's rules, the manufacturer's instructions, and local code.</p>
+        <div class="site-credit">
+            Hosted by <a href="https://markc.tech/" target="_blank" rel="noopener">markc.tech</a>
+            <span class="tagline">Practical consulting. Launch-ready thinking.</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    requestAnimationFrame(() => document.getElementById('page').classList.add('visible'));
+</script>
+</body>
+</html>

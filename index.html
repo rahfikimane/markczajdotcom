@@ -85,7 +85,6 @@
             min-height: 1.2em;
             text-align: center;
             opacity: 0;
-            
         }
 
         .loader-keyword.visible { opacity: 1; }
@@ -193,7 +192,8 @@
             text-shadow: 0 0 18px rgba(255,255,255,0.5);
         }
 
-        .linkedin-link {
+        .linkedin-link,
+        .page-link {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -209,10 +209,23 @@
             pointer-events: all;
         }
 
-        .linkedin-link:hover {
+        .page-link {
+            margin-top: 1.4rem;
+            padding-bottom: 3px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            transition: color 0.35s ease, text-shadow 0.35s ease, border-color 0.35s ease;
+        }
+
+        .linkedin-link:hover,
+        .page-link:hover,
+        .page-link:focus-visible {
             color: rgba(255,255,255,0.95);
             text-shadow: 0 0 18px rgba(255,255,255,0.45);
+            outline: none;
         }
+
+        .page-link:hover,
+        .page-link:focus-visible { border-bottom-color: rgba(255,255,255,0.5); }
 
         .linkedin-link svg {
             width: 13px;
@@ -225,7 +238,7 @@
         .site-credit {
             position: fixed;
             right: clamp(1.1rem, 3.5vw, 2.5rem);
-            bottom: clamp(1.1rem, 3.5vw, 2rem);
+            bottom: calc(clamp(1.1rem, 3.5vw, 2rem) + env(safe-area-inset-bottom, 0px));
             z-index: 2;
             text-align: right;
             font-family: 'Jost', sans-serif;
@@ -314,6 +327,7 @@
                 </svg>
                 linkedin.com/in/markczaj
             </a>-->
+            <a class="page-link" href="ai.html">The Working Code: AI on the job</a>
         </div>
     </div>
 
@@ -356,61 +370,77 @@
         const content = document.getElementById('main-content');
         const credit = document.getElementById('site-credit');
 
-        function fadeOut(el, duration, cb) {
-            const start = performance.now();
-            (function tick(now) {
-                const t = Math.min((now - start) / duration, 1);
-                el.style.opacity = 1 - t;
-                if (t < 1) requestAnimationFrame(tick);
-                else { el.style.opacity = 0; cb(); }
-            })(performance.now());
+        function reveal() {
+            loader.classList.add('hidden');
+            content.classList.add('visible');
+            credit.classList.add('visible');
         }
 
-        function fadeIn(el, duration) {
-            el.style.opacity = 0;
-            const start = performance.now();
-            (function tick(now) {
-                const t = Math.min((now - start) / duration, 1);
-                el.style.opacity = t;
-                if (t < 1) requestAnimationFrame(tick);
-                else el.style.opacity = 1;
-            })(performance.now());
-        }
+        // Play the intro once per visit; skip it when coming back from another page.
+        let seenIntro = false;
+        try { seenIntro = sessionStorage.getItem('mc-intro-seen') === '1'; } catch (e) {}
 
-        function flash(text, progress, isBurst, cb) {
-            const isLast = text === "solutions that last";
-            const outDur = isBurst ? 55 : 130;
-            const inDur  = isBurst ? 55 : 130;
-            const hold   = isLast ? 900 : isBurst ? 90 : 320;
-            fadeOut(kwEl, outDur, () => {
-                kwEl.textContent = text;
-                kwEl.classList.toggle('burst', isBurst);
-                barEl.style.width = progress + '%';
-                fadeIn(kwEl, inDur);
-                setTimeout(cb, hold);
-            });
-        }
-
-        function runPhase(list, startPct, endPct, isBurst, done) {
-            let i = 0;
-            function next() {
-                if (i >= list.length) { done(); return; }
-                const pct = startPct + ((i + 1) / list.length) * (endPct - startPct);
-                flash(list[i], pct, isBurst, next);
-                i++;
+        if (seenIntro) {
+            loader.style.transition = 'none';
+            reveal();
+        } else {
+            function fadeOut(el, duration, cb) {
+                const start = performance.now();
+                (function tick(now) {
+                    const t = Math.min((now - start) / duration, 1);
+                    el.style.opacity = 1 - t;
+                    if (t < 1) requestAnimationFrame(tick);
+                    else { el.style.opacity = 0; cb(); }
+                })(performance.now());
             }
-            next();
-        }
 
-        runPhase(phase1, 0, 65, false, () => {
-            runPhase(phase2, 65, 100, true, () => {
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                    content.classList.add('visible');
-                    credit.classList.add('visible');
-                }, 250);
+            function fadeIn(el, duration) {
+                el.style.opacity = 0;
+                const start = performance.now();
+                (function tick(now) {
+                    const t = Math.min((now - start) / duration, 1);
+                    el.style.opacity = t;
+                    if (t < 1) requestAnimationFrame(tick);
+                    else el.style.opacity = 1;
+                })(performance.now());
+            }
+
+            const lastWord = phase2[phase2.length - 1];
+
+            function flash(text, progress, isBurst, cb) {
+                const isLast = text === lastWord;
+                const outDur = isBurst ? 55 : 130;
+                const inDur  = isBurst ? 55 : 130;
+                const hold   = isLast ? 900 : isBurst ? 90 : 320;
+                fadeOut(kwEl, outDur, () => {
+                    kwEl.textContent = text;
+                    kwEl.classList.toggle('burst', isBurst);
+                    barEl.style.width = progress + '%';
+                    fadeIn(kwEl, inDur);
+                    setTimeout(cb, hold);
+                });
+            }
+
+            function runPhase(list, startPct, endPct, isBurst, done) {
+                let i = 0;
+                function next() {
+                    if (i >= list.length) { done(); return; }
+                    const pct = startPct + ((i + 1) / list.length) * (endPct - startPct);
+                    flash(list[i], pct, isBurst, next);
+                    i++;
+                }
+                next();
+            }
+
+            runPhase(phase1, 0, 65, false, () => {
+                runPhase(phase2, 65, 100, true, () => {
+                    setTimeout(() => {
+                        try { sessionStorage.setItem('mc-intro-seen', '1'); } catch (e) {}
+                        reveal();
+                    }, 250);
+                });
             });
-        });
+        }
     </script>
 
 </body>
